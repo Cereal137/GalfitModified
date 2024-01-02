@@ -1,0 +1,8 @@
+GalfitM Setup
+20240102
+
+single sersic component:
+x0, y0, q, pa: dof=1
+mag: dof=7
+re: dof=2
+n: dof=2
