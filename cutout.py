@@ -68,8 +68,11 @@ def main():
         x_c = row['xcentroid']
         y_c = row['ycentroid']
         label = row['label']
+        """
         srcarea = areas[label-1]
         size = int(np.sqrt(srcarea/3.14)*3.7)
+        """
+        size = int(7*row['kron_radius'])
         #print('Size: ' + str(size))
 
         segm_cut = cutout(segm.data, x_c, y_c, size)
