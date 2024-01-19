@@ -111,7 +111,8 @@ class SegmCut:
         if bkg_std!=bkg_std:
             raise ValueError('bkg_std is nan')
         
-        err_mean = np.nanmean(err_cut[~self.mask_all])
+        mask_err = np.isinf(err_cut) | np.isnan(err_cut)
+        err_mean = np.nanmean(err_cut[~self.mask_all & ~mask_err])
         scale_factor = bkg_std/err_mean
         if self.verbose:
             print('scaling error map to level of background std: ', bkg_std)
@@ -129,7 +130,7 @@ class SegmCut:
         bkg2d = sci_cut[~self.mask_all & ~mask_err]
         bkg_mean, _, bkg_std = estimate_local_background(bkg2d)
 
-        mask_init = (sci_cut> 7.*bkg_std) & ~self.mask_all | np.isnan(sci_cut) | mask_err
+        mask_init = ((sci_cut> 7.*bkg_std) & ~self.mask_all) | np.isnan(sci_cut) | mask_err
         # (sci_cut> 7.*bkg_std) is for masking contaminations that are not recognized by segmentation
         # np.isinf(err_cut) is for masking pixels with infinite error
         # np.isnan(sci_cut) is for masking pixels with np.nan value
