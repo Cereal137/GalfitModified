@@ -46,7 +46,7 @@ pip install photutils==1.9.0
 
 ## Stage 1: Source Detection ([Notebook](1catsrc.ipynb))
 
-### Merge Image
+### [Merge Image](utils/merge.py)
 Merge 4 LW bands SCI_BKSUB extension to produce an stacked image for source detection. Their weight are determined by the error map (inverse of the ERR extension).
 
 ### Perform Convolution
@@ -72,15 +72,23 @@ This step provides initial guess for following GALFIT process.
 ### Generate pregalfit.fits for following steps
 The initial parameters, segmentation map and image list will be stored in the file for convenience.
 
-## Stage 3: Run GalfitM ([Notebook](3dothefit.ipynb))
+## Stage 3: Cutout Images 
+
+### Create [SegmentCut Class](utils/segmentcut.py) Object
+SegmentCut is designed for convenience of cutting images with input cutout size, centroid position, targeted labels etc.
 
 ### Image Cutout
 To alleviate the stress of dealing with large numbers of data, cuting out images is necessary. The size will be based on the area segmented by source detection process.
 * Ensemble [Image Cutting](cutout.py)
 ```
-python cutout.py -i <img_name>
+python cutout.py -i <img_name> -o
 ```
 or simply run the code, it will ask you which image to process.
+
+### Free to recut 
+* [Manual Cutting](3recut.ipynb)
+
+## Stage 4: Run GalfitM ([Notebook](4dothefit.ipynb))
 
 ### Create [Galfit Class](galfitclass.py) Object
 Galfit Class is designed for better experience on the Python Interface. It will help manipulating the galfit configuration (including the overall setup and components).
@@ -93,9 +101,9 @@ Command lines are also embedded in the wrapper, providing better user experience
 
 * [Ensemble Fitting Python Code](runfit.py)
 ```
-python runfit.py -i <img_name>
+python runfit.py -i <img_name> -o
 ```
 or simply run the code, it will ask you which image to process.
 
-### Stage 4: Post-pipeline Analysis ([Notebook](collect.ipynb))
+### Stage 5: Post-pipeline Analysis ([Notebook](collect.ipynb))
 collect output files from all images and export to [ecsv file](result.ecsv)

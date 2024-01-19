@@ -43,7 +43,7 @@ class GalfitClass():
         self.bpmask_paths = []
         self.data_loaded = False
 
-    def load_data(self, img_paths: list, err_paths: list, bpmask_paths: list, reload=False):
+    def load_data(self, img_paths: list, err_paths: list, bpmask_paths: list, reload=False, verbose=True):
         """
         Load data
         args:
@@ -66,19 +66,22 @@ class GalfitClass():
             self.reload_data()
             raise ValueError('Number of images does not match the number of bands')
         self.img_paths = img_paths
-        print('SCI images loaded')
+        if verbose:
+            print('SCI images loaded')
         
         if len(err_paths) != self.nbands:
             self.reload_data()
             raise ValueError('Number of error images does not match the number of bands')
         self.err_paths = err_paths
-        print('ERR images loaded')
+        if verbose:
+            print('ERR images loaded')
         
         if len(bpmask_paths) != self.nbands:
             self.reload_data()
             raise ValueError('Number of bad pixel masks does not match the number of bands')
         self.bpmask_paths = bpmask_paths
-        print('Bad pixel masks loaded')
+        if verbose:
+            print('Bad pixel masks loaded')
 
         with fits.open(self.img_paths[0]) as hdul:
             self.image_size = hdul['SCI_BKSUB'].data.shape
@@ -86,7 +89,7 @@ class GalfitClass():
         self.data_loaded = True
         pass
 
-    def load_psf(self, psf_paths: list):
+    def load_psf(self, psf_paths: list, verbose=True):
         """
         Load psf
         args:
@@ -96,10 +99,11 @@ class GalfitClass():
         if len(psf_paths) != self.nbands:
             raise ValueError('Number of psf images does not match the number of bands')
         self.psf_paths = psf_paths
-        print('PSF images loaded')
+        if verbose:
+            print('PSF images loaded')
         self.psf_loaded = True
 
-    def load_constraint(self,constraint_path: str):
+    def load_constraint(self,constraint_path: str, verbose=True):
         """ 
         Load constraint file
         args:
@@ -107,7 +111,8 @@ class GalfitClass():
                 Path to constraint file
         """
         self.constraint_path = constraint_path
-        print('Constraint file loaded')
+        if verbose:
+            print('Constraint file loaded')
 
     def genstr_feedme(self):
         """
