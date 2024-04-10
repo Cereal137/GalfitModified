@@ -42,7 +42,6 @@ def estimate_local_background(data1d):
 @dataclass
 class SegmCut:
     segm_cut: np.ndarray
-    position: tuple
     size: int
     label_areas: np.ndarray
     labels_unmask: np.ndarray

@@ -24,7 +24,7 @@ from https://www.nottingham.ac.uk/astronomy/megamorph/.
 
 For example, in Bash:
 ```
-alias galfit='~/Downloads/galfitm-1.4.4-osx'
+alias galfitm='~/Downloads/galfitm-1.4.4-osx'
 ```
 
 

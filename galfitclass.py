@@ -137,13 +137,13 @@ class GalfitClass():
 
         if self.component_list:
             for component in self.component_list:
-                feedme += component.genstr_feedme()
+                feedme += component.genstr_feedme() + '\n'
         else:
             raise ValueError('No component is added')
         
         return feedme
     
-    def add_component(self, component):
+    def add_component(self, component) -> None:
         """
         Add component to feedme file
         args:
@@ -152,9 +152,8 @@ class GalfitClass():
         """
         self.component_list.append(component)
 
-        pass
-
-    def run(self, feedme_path: str):
+    @staticmethod
+    def run(feedme_path: str) -> None:
         """
         Run Galfit
         args:
@@ -162,10 +161,8 @@ class GalfitClass():
                 Path to feedme file
         
         """
-        cmd = 'galfit '+ feedme_path
+        cmd = 'galfitm '+ feedme_path
         child = subprocess.call(['/bin/zsh',"-i", "-c", cmd])
-        
-        pass
 
 class SersicComponent():
     def __init__(self, nbands, skip=False):
