@@ -44,11 +44,12 @@ def genfeedme_sample(sample_dir: str, tab_ini: Table) -> None:
 
         row_ini = tab_ini[tab_ini['ID']==id][0]
         mag_ini_list = [row_ini[f'KronPhot_{band}_mag'] for band in band_labels]
+        re_ini_list = [row_ini[f'KronPhot_{band}_Re'] for band in band_labels]
         sersic_comp.config_mag(1, [mag_ini_list[i]])
         sersic_comp.config_n(1, [2.0])
-        sersic_comp.config_re(1, [15.0])
-        sersic_comp.config_q(1, [row_ini['eccentricity']])
-        sersic_comp.config_pa(1, [row_ini['orientation']])
+        sersic_comp.config_re(1, [re_ini_list[i]])
+        sersic_comp.config_q(1, [1/row_ini['elongation']])
+        sersic_comp.config_pa(1, [90 + row_ini['orientation']])
 
         gal_obj.add_component(sersic_comp)
 

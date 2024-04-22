@@ -2,6 +2,7 @@ import glob
 import argparse
 
 from tqdm import tqdm
+import numpy as np
 from astropy.io import fits
 from astropy.table import Table
 
@@ -43,17 +44,19 @@ def genfeedme_sample(arguments :tuple[str, Table]) -> None:
 
     row_ini = tab_ini[tab_ini['ID']==int(id)][0]
     mag_ini_list = [row_ini[f'KronPhot_{band}_mag'] for band in band_labels]
+    re_ini_list = [row_ini[f'KronPhot_{band}_Re'] for band in band_labels]
+    re_ini = np.min(re_ini_list) if np.min(re_ini_list) < 20 else 5.0
     sersic_comp.config_mag(7, mag_ini_list)
-    sersic_comp.config_n(2, [2.0]*2) # 2 can be wrong
-    sersic_comp.config_re(2, [5.0]*2)  # 2 can be wrong
-    sersic_comp.config_q(1, [row_ini['eccentricity']])
-    sersic_comp.config_pa(1, [row_ini['orientation']])
+    sersic_comp.config_n(3, [3.0]*3) # 2 can be wrong
+    sersic_comp.config_re(3, [re_ini]*3)  # 2 can be wrong
+    sersic_comp.config_q(1, [1/row_ini['elongation']])
+    sersic_comp.config_pa(1, [90 + row_ini['orientation']])
 
     gal_obj.add_component(sersic_comp)
 
     # generate feedme file
     feedme = gal_obj.genstr_feedme()
-    feedme_path = sample_dir + f'{id}.galfit'
+    feedme_path = sample_dir + f'{id}_multi.galfit'
     with open(feedme_path, 'w') as f:
         f.write(feedme)
 

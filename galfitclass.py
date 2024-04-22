@@ -84,7 +84,7 @@ class GalfitClass():
             print('Bad pixel masks loaded')
 
         with fits.open(self.img_paths[0]) as hdul:
-            self.image_size = hdul['SCI_BKSUB'].data.shape
+            self.image_size = hdul['SCIENCE'].data.shape
         
         self.data_loaded = True
         pass
