@@ -5,8 +5,12 @@
 					# sersic index n to within
 				        # ABSOLUTE values from 0.1 to 10.
 
-    1	  	   x	     -3.  3.	# Soft constraint: Constrains 
+    1	  	   x	     -5.  5.	# Soft constraint: Constrains 
 					# x-position of component
+					# 1 to within +3. and -3. of the
+					# INPUT value.
+	1          y		  -5.  5.	# Soft constraint: Constrains 
+					# y-position of component
 					# 1 to within +3. and -3. of the
 					# INPUT value.
 

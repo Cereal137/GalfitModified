@@ -8,6 +8,8 @@ warnings.filterwarnings('ignore')
 import numpy as np
 import matplotlib.pyplot as plt
 
+from tqdm import tqdm
+
 from astropy.io import fits
 from astropy.table import Table
 from astropy.nddata import Cutout2D
@@ -25,9 +27,7 @@ def cutout_worker(id: str, x_c: float, y_c: float, label: Union[int, list], size
                   tab_img: Table, segm: SegmentationImage, sample_base: str, 
                   overwrite=False, max_size: int = 270) -> None:
 
-    if isinstance(label, list):
-        pass
-    else: # convert to list
+    if not isinstance(label, list): # convert to list
         label = [label]
     if 0 in label: # avoid label 0
         raise ValueError('Label 0 is not allowed for a target')
@@ -62,15 +62,16 @@ def cutout_worker(id: str, x_c: float, y_c: float, label: Union[int, list], size
             cut = Cutout2D(hdul['SCI'].data, (x_c, y_c), (size, size), wcs=w)
             sci_cut, w_cut = cut.data, cut.wcs
             err_cut = Cutout2D(hdul['ERR'].data, (x_c, y_c), (size, size)).data # cutout(hdul['ERR'].data, x_c, y_c, size)
+
         try:
             scimap, errmap, bpmask, bkg1d = sc.gen_cutout(sci_cut, err_cut, hist=True)
         except ValueError:
             print('Error: ' + sample_dir + ' is not a valid cutout')
             valid = False
-
-        if bpmask[size//2,size//2]==1:
-            print('Error: ' + sample_dir + ' have bad pixel in the center, which may suggest a bad cutout in ' + band)
-            valid = False
+        else:
+            if bpmask[size//2,size//2]==1:
+                print('Error: ' + sample_dir + ' have bad pixel in the center, which may suggest a bad cutout in ' + band)
+                valid = False
 
         if size > max_size:
             print('Error: ' + sample_dir + f' exceeds the maximum size: {max_size}, which may suggest a bad segmentation')
@@ -152,7 +153,7 @@ def main():
 
     nproc = args.nproc if args.nproc <= os.cpu_count() else os.cpu_count()
     if nproc==1:
-        for row in tab_ini:
+        for row in tqdm(tab_ini):
             id = str(row['ID'])
             x_c = row['xcentroid']
             y_c = row['ycentroid']

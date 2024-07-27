@@ -1,4 +1,6 @@
 import subprocess
+from copy import deepcopy
+
 import numpy as np
 from astropy.io import fits
 
@@ -161,7 +163,7 @@ class GalfitClass():
                 Path to feedme file
         
         """
-        cmd = 'galfitm '+ feedme_path
+        cmd = 'galfitm '+ feedme_path #+ '1>> log.txt 2>> log.txt'
         child = subprocess.call(['/bin/zsh',"-i", "-c", cmd])
 
 class SersicComponent():
@@ -185,6 +187,9 @@ class SersicComponent():
         self.pa_configured = False
         self.skip = skip
 
+    def copy(self):
+        return deepcopy(self)
+
     def config_x(self, dof_x: int, x_ini_list: list, cheb_mode: bool = False):
         """
         Configure x initial guess
@@ -192,7 +197,11 @@ class SersicComponent():
         if dof_x > self.nbands:
             raise ValueError('Number of degrees of freedom cannot be larger than the number of bands')
         self.dof_x = dof_x
-        if len(x_ini_list) != dof_x:
+
+        card_x = len(x_ini_list)
+        if (card_x, dof_x) == (1,0):
+            pass
+        elif card_x != dof_x:
             raise ValueError('Number of x initial guesses does not match the number of degrees of freedom')
         
         self.x_ini_list = x_ini_list
@@ -206,7 +215,11 @@ class SersicComponent():
         if dof_y > self.nbands:
             raise ValueError('Number of degrees of freedom cannot be larger than the number of bands')
         self.dof_y = dof_y
-        if len(y_ini_list) != dof_y:
+
+        card_y = len(y_ini_list)
+        if (card_y, dof_y) == (1,0):
+            pass
+        elif card_y != dof_y:
             raise ValueError('Number of y initial guesses does not match the number of degrees of freedom')
         
         self.y_ini_list = y_ini_list
@@ -232,21 +245,7 @@ class SersicComponent():
         self.mag_ini_list = mag_ini_list
         self.mag_cheb_mode = cheb_mode
         self.mag_configured = True
-
-    def config_sersic(self, dof_sersic: int, sersic_ini_list: list, cheb_mode: bool = False):
-        """
-        Configure sersic initial guess
-        """
-        if dof_sersic > self.nbands:
-            raise ValueError('Number of degrees of freedom cannot be larger than the number of bands')
-        self.dof_sersic = dof_sersic
-        if len(sersic_ini_list) != dof_sersic:
-            raise ValueError('Number of sersic initial guesses does not match the number of degrees of freedom')
         
-        self.sersic_ini_list = sersic_ini_list
-        self.sersic_cheb_mode = cheb_mode
-        self.sersic_configured = True
-
     def config_re(self, dof_re: int, re_ini_list: list, cheb_mode: bool = False):
         """
         Configure re initial guess
@@ -254,7 +253,11 @@ class SersicComponent():
         if dof_re > self.nbands:
             raise ValueError('Number of degrees of freedom cannot be larger than the number of bands')
         self.dof_re = dof_re
-        if len(re_ini_list) != dof_re:
+
+        card_re = len(re_ini_list) 
+        if (card_re, dof_re) == (1,0):
+            pass
+        elif card_re != dof_re:
             raise ValueError('Number of re initial guesses does not match the number of degrees of freedom')
         
         self.re_ini_list = re_ini_list
@@ -268,7 +271,11 @@ class SersicComponent():
         if dof_n > self.nbands:
             raise ValueError('Number of degrees of freedom cannot be larger than the number of bands')
         self.dof_n = dof_n
-        if len(n_ini_list) != dof_n:
+
+        card_ini = len(n_ini_list)
+        if (card_ini, dof_n) == (1,0):
+            pass
+        elif card_ini != dof_n:
             raise ValueError('Number of n initial guesses does not match the number of degrees of freedom')
         
         self.n_ini_list = n_ini_list
@@ -282,7 +289,11 @@ class SersicComponent():
         if dof_q > self.nbands:
             raise ValueError('Number of degrees of freedom cannot be larger than the number of bands')
         self.dof_q = dof_q
-        if len(q_ini_list) != dof_q:
+
+        card_q = len(q_ini_list) 
+        if (card_q, dof_q) == (1,0):
+            pass
+        elif card_q != dof_q:
             raise ValueError('Number of q initial guesses does not match the number of degrees of freedom')
         
         self.q_ini_list = q_ini_list
@@ -296,7 +307,11 @@ class SersicComponent():
         if dof_pa > self.nbands:
             raise ValueError('Number of degrees of freedom cannot be larger than the number of bands')
         self.dof_pa = dof_pa
-        if len(pa_ini_list) != dof_pa:
+
+        card_pa = len(pa_ini_list) 
+        if (card_pa, dof_pa) == (1,0):
+            pass
+        elif card_pa != dof_pa:
             raise ValueError('Number of pa initial guesses does not match the number of degrees of freedom')
         
         self.pa_ini_list = pa_ini_list

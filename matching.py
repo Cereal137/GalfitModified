@@ -31,22 +31,30 @@ def main():
     skycoord_list = cat.sky_centroid_icrs
     label_list = cat.labels
 
-    tab_ref= Table.read(ref_path, format='ascii.csv')
-    ref_list = SkyCoord(ra=tab_ref['RA']*u.degree, dec=tab_ref['Dec']*u.degree, frame='fk5').transform_to('icrs')
+    tab_ref = Table.read(ref_path)
+    print(tab_ref.colnames)
+    key_ra = input("Enter RA key: ")
+    key_dec = input("Enter Dec key: ")
+    key_id = input("Enter ID key: ")
+    ref_list = SkyCoord(ra=tab_ref[key_ra]*u.degree, dec=tab_ref[key_dec]*u.degree, frame='fk5').transform_to('icrs')
 
     max_sep = 1. # arcsec
     idx1, idx2, _, _ = skycoord_list.search_around_sky(ref_list, max_sep*u.arcsec)
     idx1_unique, pos_unique = np.unique(idx1, return_index=True)
     tab_ref_matched = tab_ref[idx1_unique]
-    ra_matched = tab_ref_matched['RA']
-    dec_matched = tab_ref_matched['Dec']
+    ra_matched = tab_ref_matched[key_ra]
+    dec_matched = tab_ref_matched[key_dec]
     skypos_matched = SkyCoord(ra=ra_matched*u.degree, dec=dec_matched*u.degree, frame='fk5').transform_to('icrs')
     pixpos_matched = skypos_matched.to_pixel(w)
     label_matched = segm_deblend.data[pixpos_matched[1].astype(int), pixpos_matched[0].astype(int)]
 
     match_dir = f'./io/match/{img_name}/'
     # crossmatch check in csv format, convienient for human check
-    tab_ref_matched.keep_columns(['RA','Dec','ID'])
+    tab_ref_matched.keep_columns([key_ra, key_dec, key_id])
+    tab_ref_matched.rename_column(key_ra, 'RA')
+    tab_ref_matched.rename_column(key_dec, 'Dec')
+    tab_ref_matched.rename_column(key_id, 'ID')
+    
     tab_ref_matched.add_column(label_matched, name='label')
     tab_ref_matched.write(match_dir + f'tab_ref_matched_{img_name}.csv', format='ascii.csv', overwrite=True)
     print(f'Crossmatch result has been successfully saved in {match_dir}tab_ref_matched_{img_name}.csv')

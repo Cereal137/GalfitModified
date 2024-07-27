@@ -1,10 +1,19 @@
 import numpy as np
 from dataclasses import dataclass
 
+def growth_radius(area: float, max_radius:int = 8) -> int:
+    """
+    Growth radius
+    """
+    return int( min( max_radius , max_radius * 0.1 * np.sqrt(area/np.pi) ) )
+
 def dilate_mask(mask, size=5):
     """
     Dilate mask
     """
+    if size<=0:
+        return mask
+    
     from scipy.ndimage import binary_dilation
     return binary_dilation(mask, structure=np.ones((size, size)))
 
@@ -21,6 +30,7 @@ class SegmCut:
     label_areas: np.ndarray
     labels_unmask: np.ndarray
     verbose: bool = False
+    max_radius: int = 8
 
     def __post_init__(self):
         self.labels = self._labels()
@@ -50,7 +60,7 @@ class SegmCut:
         for label_iter in self.labels:
             if label_iter not in self.labels_unmask:
                 mask_iter = (self.segm_cut==label_iter)
-                dilation_size = int(min(8,0.8*np.sqrt(self.label_areas[label_iter-1]/np.pi)))
+                dilation_size = growth_radius(self.label_areas[label_iter-1], max_radius=self.max_radius)
                 if self.verbose:
                     print(f'dilation size for non-targeted label {label_iter}: ', dilation_size)
 
@@ -63,7 +73,7 @@ class SegmCut:
         mask_target_dilated = np.zeros_like(self.segm_cut, dtype=bool)
         for label_iter in self.labels_unmask:
             mask_iter = (self.segm_cut==label_iter)
-            dilation_size = int(min(8,0.8*np.sqrt(self.label_areas[label_iter-1]/np.pi)))
+            dilation_size = growth_radius(self.label_areas[label_iter-1], max_radius=self.max_radius)
             if self.verbose:
                 print(f'dilation size for targeted label {label_iter}: ', dilation_size)
 
@@ -131,3 +141,22 @@ class SegmCut:
             if self.verbose:
                 print('returning 1d data of masked science cutout on the rear')
             return scimap, errmap, bpmask, bkg2d.flatten() - bkg_mean
+        
+    def estimate_background(self, sci_cut: np.ndarray, err_cut: np.ndarray):
+        """
+        Estimate background
+
+        Returns
+        -------
+        bkg_mean : float
+            background level
+        bkg_std : float
+            background std
+        bkg1d : np.ndarray
+            1D background map
+        """
+        mask_err = np.isinf(err_cut) | np.isnan(err_cut)
+        bkg2d = sci_cut[(~self.mask_all) & (~mask_err)] # exclude dilated targets and bad pixels in error map
+        bkg_mean, _, bkg_std = estimate_local_background(bkg2d) # sigma-clipped stats to estimate background level and std
+        bkg1d = bkg2d.flatten()
+        return bkg_mean, bkg_std, bkg1d

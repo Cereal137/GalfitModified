@@ -1,7 +1,9 @@
+import os
 import glob
 import argparse
 
 from tqdm import tqdm
+
 import numpy as np
 from astropy.io import fits
 from astropy.table import Table
@@ -9,15 +11,17 @@ from astropy.table import Table
 from galfitclass import GalfitClass, SersicComponent
 from utils.zeropoint import calc_zpt
 
+galfit_base = os.path.dirname(os.path.abspath(__file__))
+psf_dir = os.path.join(galfit_base, 'io/psf/')
 prep_base = './io/prep/'
 
 band_labels = ['F115W','F150W','F200W','F277W','F356W','F410M','F444W']
 band_wavelengths = [1.1540, 1.5000, 1.9880, 2.7610, 3.5680, 4.0820, 4.4040]
-psf_list = [f'./io/psf/{band.lower()}_psf.fits' for band in band_labels]
-constraint_path = './constraint.txt'
+psf_abs_paths = [psf_dir + f'{band.lower()}_psf.fits' for band in band_labels]
+psf_list = [os.path.relpath(psf_abs_path) for psf_abs_path in psf_abs_paths]
+constraint_path = os.path.relpath(os.path.join(galfit_base, 'constraint.txt'))
 
-def genfeedme_sample(arguments :tuple[str, Table]) -> None:
-    sample_dir, tab_ini = arguments
+def genfeedme_sample(sample_dir: str, tab_ini: Table) -> None:
     id = sample_dir.split('/')[-2]
 
     img_list = [sample_dir + 'sci_' + band + '.fits' for band in band_labels]
@@ -26,7 +30,7 @@ def genfeedme_sample(arguments :tuple[str, Table]) -> None:
 
     x_c = fits.getheader(img_list[0])['xc']
     y_c = fits.getheader(img_list[0])['yc']
-    zpts = calc_zpt(x_c, y_c, corr_dict='CR', verbose=False)
+    zpts = calc_zpt(x_c, y_c, corr_dict='CR0', verbose=False)
     dict_band = dict(zip(band_labels, zip(band_wavelengths, zpts)))
 
     # create a galfit object
@@ -79,7 +83,7 @@ def main():
     sample_dir_list.sort()
     
     for sample_dir in tqdm(sample_dir_list):
-        genfeedme_sample((sample_dir, tab_ini))
+        genfeedme_sample(sample_dir, tab_ini)
 
 if __name__ == '__main__':
     main()

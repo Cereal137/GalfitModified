@@ -1,0 +1,12 @@
+analysis/
+io/
+multicomp/
+refcat/
+__pycache__/
+.DS_Store
+test/
+fit.log
+result/
+.vscode/
+uncertainty/
+sersic/

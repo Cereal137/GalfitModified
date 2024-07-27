@@ -1,3 +1,4 @@
+import os
 import glob
 import argparse
 
@@ -8,15 +9,25 @@ from astropy.table import Table
 from galfitclass import GalfitClass, SersicComponent
 from utils.zeropoint import calc_zpt
 
+galfit_base = os.path.dirname(os.path.abspath(__file__))
+psf_dir = os.path.join(galfit_base, 'io/psf/')
 prep_base = './io/prep/'
 
 band_labels = ['F115W','F150W','F200W','F277W','F356W','F410M','F444W']
 band_wavelengths = [1.1540, 1.5000, 1.9880, 2.7610, 3.5680, 4.0820, 4.4040]
-psf_list = [f'./io/psf/{band.lower()}_psf.fits' for band in band_labels]
-constraint_path = './constraint.txt'
+psf_abs_paths = [psf_dir + f'{band.lower()}_psf.fits' for band in band_labels]
+psf_list = [os.path.relpath(psf_abs_path) for psf_abs_path in psf_abs_paths]
+constraint_path = os.path.relpath(os.path.join(galfit_base, 'constraint.txt'))
 
-def genfeedme_sample(sample_dir: str, tab_ini: Table) -> None:
-    id = sample_dir.split('/')[-2]
+def genfeedme_sample(sample_dir: str, tab_ini: Table, sample_id: str='') -> None:
+    """
+    Generate feedme files for a sample
+    
+    Args:
+    sample_dir: str
+        Directory of the sample
+    """
+    id = sample_dir.split('/')[-2] if sample_id == '' else sample_id
 
     img_list = [sample_dir + 'sci_' + band + '.fits' for band in band_labels]
     err_list = [sample_dir + 'err_' + band + '.fits' for band in band_labels]
@@ -24,7 +35,7 @@ def genfeedme_sample(sample_dir: str, tab_ini: Table) -> None:
 
     x_c = fits.getheader(img_list[0])['xc']
     y_c = fits.getheader(img_list[0])['yc']
-    zpts = calc_zpt(x_c, y_c, corr_dict='CR0', verbose=False)
+    zpts = calc_zpt(x_c, y_c, corr_dict='CR', verbose=False)
 
     # create a galfit object
     gal_save_path = sample_dir + 'output.fits'
@@ -39,14 +50,18 @@ def genfeedme_sample(sample_dir: str, tab_ini: Table) -> None:
 
         # add a sersic component
         sersic_comp = SersicComponent(gal_obj.nbands, skip=False)
-        sersic_comp.config_x(1, [gal_obj.image_size[0]/2+1]) # 7 but restrain its offset
-        sersic_comp.config_y(1, [gal_obj.image_size[1]/2+1])
+        sersic_comp.config_x(1, [gal_obj.image_size[0]//2+1])
+        sersic_comp.config_y(1, [gal_obj.image_size[1]//2+1])
 
-        row_ini = tab_ini[tab_ini['ID']==id][0]
+        try:
+            row_ini = tab_ini[tab_ini['ID']==id][0]
+        except IndexError:
+            row_ini = tab_ini[tab_ini['ID']==int(id)][0]
+        
         mag_ini_list = [row_ini[f'KronPhot_{band}_mag'] for band in band_labels]
         re_ini_list = [row_ini[f'KronPhot_{band}_Re'] for band in band_labels]
         sersic_comp.config_mag(1, [mag_ini_list[i]])
-        sersic_comp.config_n(1, [2.0])
+        sersic_comp.config_n(1, [3.0])
         sersic_comp.config_re(1, [re_ini_list[i]])
         sersic_comp.config_q(1, [1/row_ini['elongation']])
         sersic_comp.config_pa(1, [90 + row_ini['orientation']])
